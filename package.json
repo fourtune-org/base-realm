@@ -8,6 +8,7 @@
     "type": "git",
     "url": "git+https://github.com/fourtune-org/base-realm.git"
   },
+  "typings": "./src/index.d.ts",
   "exports": {
     ".": "./src/index.mjs",
     "./package.json": "./package.json"
