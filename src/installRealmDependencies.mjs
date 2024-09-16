@@ -53,7 +53,7 @@ function installPackage(pkg_path, dependency, version) {
 	}
 }
 
-async function installDependencies(project_root, dependencies) {
+async function installDependencies(project_root, realm, dependencies) {
 	const id = Math.random().toString(32).slice(2)
 
 	const tmp_path = path.join(
@@ -96,6 +96,10 @@ async function installDependencies(project_root, dependencies) {
 		path.join(tmp_path, "dependencies.mjs"), js_file
 	)
 
+	await fs.writeFile(
+		path.join(tmp_path, "realm.mjs"), `export default ${JSON.stringify(realm)};\n`
+	)
+
 	const platform = `${process.platform}-${process.arch}`
 
 	await fs.writeFile(
@@ -105,13 +109,13 @@ async function installDependencies(project_root, dependencies) {
 	return id
 }
 
-export default async function(project_root, dependencies) {
+export default async function(project_root, realm, dependencies) {
 	await checkProjectRoot(project_root)
 	await ensureBaseDirExists(project_root)
 
 	await removeOldDependencies(project_root)
 
-	const tmp_id = await installDependencies(project_root, dependencies)
+	const tmp_id = await installDependencies(project_root, realm, dependencies)
 
 	await fs.rm(
 		path.join(getFourtuneBaseDir(project_root), "realm_dependencies"), {

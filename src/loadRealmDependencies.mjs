@@ -2,7 +2,11 @@ import getFourtuneBaseDir from "./getFourtuneBaseDir.mjs"
 import path from "node:path"
 import fs from "node:fs/promises"
 
-export default async function(project_root) {
+export default async function(project_root, realm) {
+	const realm_path = path.resolve(
+		getFourtuneBaseDir(project_root), "realm_dependencies", "realm.mjs"
+	)
+
 	const platform_path = path.resolve(
 		getFourtuneBaseDir(project_root), "realm_dependencies", "platform.mjs"
 	)
@@ -25,8 +29,16 @@ export default async function(project_root) {
 	}
 
 	try {
+		const {default: current_realm} = await import(realm_path)
 		const {default: expected_platform} = await import(platform_path)
 		const {default: dependencies} = await import(realm_dependencies_path)
+
+		if (current_realm !== realm) {
+			throw new Error(
+				`Expected realm '${realm}' does not match current installed realm '${current_realm}'.\n` +
+				`Make sure to install @fourtune/${realm}.`
+			)
+		}
 
 		const current_platform = `${process.platform}-${process.arch}`
 
