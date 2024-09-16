@@ -66,7 +66,7 @@ async function installDependencies(project_root, dependencies) {
 	let i = 0
 
 	for (const dependency in dependencies) {
-		let [version, code] = dependencies[dependency]
+		const {version, import_code} = dependencies[dependency]
 
 		const pkg_name = dependency.split(`@`).join("").split(`/`).join("-") + ".pkg"
 		const pkg_path = path.join(tmp_path, pkg_name)
@@ -76,7 +76,7 @@ async function installDependencies(project_root, dependencies) {
 		installPackage(pkg_path, dependency, version)
 
 		await fs.writeFile(
-			path.join(pkg_path, "index.mjs"), code
+			path.join(pkg_path, "index.mjs"), import_code
 		)
 
 		js_file += `import dependency_${i} from "./${pkg_name}/index.mjs"\n`
