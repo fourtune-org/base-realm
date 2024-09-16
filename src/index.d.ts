@@ -13,7 +13,7 @@ interface DependencyMap {
 }
 
 export function findProjectRootFromDirectory(start_dir : string) : Promise<string|false>
-export function installRealmDependencies(project_root : string, realm : string, dependencies : DependencyMap) : void
+export function installRealmDependencies(project_root : string, realm : string, dependencies : DependencyMap) : Promise<void>
 export function loadRealmDependencies(project_root : string, realm : string) : Promise<LoadRealmDependenciesResult>
 
 declare const _default: {
