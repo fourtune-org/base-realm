@@ -96,6 +96,12 @@ async function installDependencies(project_root, dependencies) {
 		path.join(tmp_path, "dependencies.mjs"), js_file
 	)
 
+	const platform = `${process.platform}-${process.arch}`
+
+	await fs.writeFile(
+		path.join(tmp_path, "platform.mjs"), `export default ${JSON.stringify(platform)};\n`
+	)
+
 	return id
 }
 

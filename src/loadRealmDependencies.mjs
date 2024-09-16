@@ -3,6 +3,10 @@ import path from "node:path"
 import fs from "node:fs/promises"
 
 export default async function(project_root) {
+	const platform_path = path.resolve(
+		getFourtuneBaseDir(project_root), "realm_dependencies", "platform.mjs"
+	)
+
 	const realm_dependencies_path = path.resolve(
 		getFourtuneBaseDir(project_root), "realm_dependencies", "dependencies.mjs"
 	)
@@ -21,7 +25,18 @@ export default async function(project_root) {
 	}
 
 	try {
+		const {default: expected_platform} = await import(platform_path)
 		const {default: dependencies} = await import(realm_dependencies_path)
+
+		const current_platform = `${process.platform}-${process.arch}`
+
+		if (current_platform !== expected_platform) {
+			throw new Error(
+				`Refusing to serve realm dependencies that were produced on a different platform.\n` +
+				`Expected platform: ${expected_platform}, your platform: ${current_platform}.\n` +
+				`This can be fixed by re-installing @fourtune/realm-<REALM> inside your project.`
+			)
+		}
 
 		return {
 			getDependency(name)  {
@@ -46,7 +61,7 @@ export default async function(project_root) {
 		}
 	} catch (e) {
 		throw new Error(
-			`Unable to load realm dependencies at '${realm_dependencies_path}'. Reason: ${e.message}.`
+			`Unable to load realm dependencies at '${realm_dependencies_path}'. Reason: ${e.message}`
 		)
 	}
 }
