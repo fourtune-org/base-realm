@@ -1,6 +1,7 @@
 import getFourtuneBaseDir from "./getFourtuneBaseDir.mjs"
 import path from "node:path"
 import fs from "node:fs/promises"
+import getPackageName from "./getPackageName.mjs"
 
 export default async function(project_root, realm) {
 	const realm_path = path.resolve(
@@ -55,6 +56,24 @@ export default async function(project_root, realm) {
 				for (const dependency of dependencies) {
 					if (dependency.name === name) {
 						return dependency.module
+					}
+				}
+
+				return null
+			},
+
+			getPathOfDependency(name) {
+				for (const dependency of dependencies) {
+					if (dependency.name === name) {
+						const pkg_name = getPackageName(name)
+
+						return path.resolve(
+							getFourtuneBaseDir(project_root),
+							"realm_dependencies",
+							pkg_name,
+							"node_modules",
+							name
+						)
 					}
 				}
 

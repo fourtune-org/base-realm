@@ -3,6 +3,7 @@ import fs from "node:fs/promises"
 import getFourtuneBaseDir from "./getFourtuneBaseDir.mjs"
 import findProjectRootFromDirectory from "./findProjectRootFromDirectory.mjs"
 import {spawnSync} from "node:child_process"
+import getPackageName from "./getPackageName.mjs"
 
 async function checkProjectRoot(project_root_1) {
 	const project_root_2 = await findProjectRootFromDirectory(project_root_1)
@@ -68,7 +69,7 @@ async function installDependencies(project_root, realm, dependencies) {
 	for (const dependency in dependencies) {
 		const {version, import_code} = dependencies[dependency]
 
-		const pkg_name = dependency.split(`@`).join("").split(`/`).join("-") + ".pkg"
+		const pkg_name = getPackageName(dependency)
 		const pkg_path = path.join(tmp_path, pkg_name)
 
 		await fs.mkdir(pkg_path)

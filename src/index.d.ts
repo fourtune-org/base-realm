@@ -1,5 +1,6 @@
 interface LoadRealmDependenciesResult {
 	getDependency(name : string) : any|null
+	getPathOfDependency(name : string) : string|null
 	getDependencyVersion(name : string) : string|null
 }
 
