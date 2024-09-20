@@ -117,6 +117,10 @@ export default async function(project_root, realm, dependencies) {
 
 	const tmp_id = await installDependencies(project_root, realm, dependencies)
 
+	// todo:
+	// mv current realm_dependencies -> random name
+	// mv tmp name -> realm_dependencies
+	// rm random name
 	await fs.rm(
 		path.join(getFourtuneBaseDir(project_root), "realm_dependencies"), {
 			recursive: true,
