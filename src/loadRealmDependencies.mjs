@@ -1,6 +1,7 @@
 import getFourtuneBaseDir from "./getFourtuneBaseDir.mjs"
 import path from "node:path"
 import fs from "node:fs/promises"
+import fsSync from "node:fs"
 import getPackageName from "./getPackageName.mjs"
 
 export default async function(project_root, realm) {
@@ -61,7 +62,7 @@ export default async function(project_root, realm) {
 			return null
 		}
 
-		return {
+		let ret = {
 			getDependency(name)  {
 				const dep = getDependencyByName(name)
 
@@ -86,6 +87,18 @@ export default async function(project_root, realm) {
 				)
 			},
 
+			loadDependencyPackageJSON(name) {
+				const pkg_path = ret.getPathOfDependency(name)
+
+				if (pkg_path === null) return null
+
+				const package_json_str = (fsSync.readFileSync(
+					path.join(pkg_path, "package.json")
+				)).toString()
+
+				return JSON.parse(package_json_str)
+			},
+
 			getDependencyVersion(name) {
 				const dep = getDependencyByName(name)
 
@@ -94,6 +107,8 @@ export default async function(project_root, realm) {
 				return dep.version
 			}
 		}
+
+		return ret
 	} catch (e) {
 		throw new Error(
 			`Unable to load realm dependencies at '${realm_dependencies_path}'. Reason: ${e.message}`
