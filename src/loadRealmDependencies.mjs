@@ -51,43 +51,47 @@ export default async function(project_root, realm) {
 			)
 		}
 
+		const getDependencyByName = (name) => {
+			for (const dependency of dependencies) {
+				if (dependency.name === name) {
+					return dependency
+				}
+			}
+
+			return null
+		}
+
 		return {
 			getDependency(name)  {
-				for (const dependency of dependencies) {
-					if (dependency.name === name) {
-						return dependency.module
-					}
-				}
+				const dep = getDependencyByName(name)
 
-				return null
+				if (dep === null) return null
+
+				return dep.module
 			},
 
 			getPathOfDependency(name) {
-				for (const dependency of dependencies) {
-					if (dependency.name === name) {
-						const pkg_name = getPackageName(name)
-
-						return path.resolve(
-							getFourtuneBaseDir(project_root),
-							"realm_dependencies",
-							pkg_name,
-							"node_modules",
-							name
-						)
-					}
+				if (getDependencyByName(name) === null) {
+					return null
 				}
 
-				return null
+				const pkg_name = getPackageName(name)
+
+				return path.resolve(
+					getFourtuneBaseDir(project_root),
+					"realm_dependencies",
+					pkg_name,
+					"node_modules",
+					name
+				)
 			},
 
 			getDependencyVersion(name) {
-				for (const dependency of dependencies) {
-					if (dependency.name === name) {
-						return dependency.version
-					}
-				}
+				const dep = getDependencyByName(name)
 
-				return null
+				if (dep === null) return null
+
+				return dep.version
 			}
 		}
 	} catch (e) {
