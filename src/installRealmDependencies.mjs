@@ -54,6 +54,10 @@ function installPackage(pkg_path, dependency, version) {
 	}
 }
 
+function defaultImportCode(dependency) {
+	return `import dependency from ${JSON.stringify(dependency)};\nexport default dependency;\n`
+}
+
 async function installDependencies(project_root, realm, dependencies) {
 	const id = Math.random().toString(32).slice(2)
 
@@ -67,7 +71,13 @@ async function installDependencies(project_root, realm, dependencies) {
 	let i = 0
 
 	for (const dependency in dependencies) {
-		const {version, import_code} = dependencies[dependency]
+		const {version} = dependencies[dependency]
+
+		let import_code = defaultImportCode(dependency)
+
+		if ("import_code" in dependencies[dependency]) {
+			import_code = dependencies[dependency].import_code
+		}
 
 		const pkg_name = getPackageName(dependency)
 		const pkg_path = path.join(tmp_path, pkg_name)
