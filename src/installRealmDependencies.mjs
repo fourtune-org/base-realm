@@ -58,6 +58,51 @@ function defaultImportCode(dependency) {
 	return `import dependency from ${JSON.stringify(dependency)};\nexport default dependency;\n`
 }
 
+async function installLinkedPackage(pkg_path, dependency, {import_from}) {
+	let node_modules_base_path
+	let package_base_name
+	let levels = 0
+
+	//
+	// if package name contains "/" then the base will be:
+	// node_modules/<ORG>
+	//
+	if (import_from.includes("/")) {
+		node_modules_base_path = path.join(pkg_path, "node_modules", import_from.split("/")[0])
+		package_base_name = import_from.split("/")[1]
+		levels = 3
+	}
+	// otherwise the base will be just "node_modules/"
+	else {
+		node_modules_base_path = path.join(pkg_path, "node_modules")
+		package_base_name = import_from
+		levels = 2
+	}
+
+	await fs.mkdir(node_modules_base_path, {recursive: true})
+
+	// symlink to source package
+	await fs.symlink(
+		path.join(
+			"../".repeat(levels),
+			getPackageName(import_from),
+			"node_modules",
+			import_from
+		),
+		path.join(node_modules_base_path, package_base_name)
+	)
+
+	const source_package_json_str = (await fs.readFile(
+		path.join(node_modules_base_path, package_base_name, "package.json")
+	)).toString()
+
+	const source_package_json = JSON.parse(source_package_json_str)
+
+	return {
+		version: source_package_json.dependencies[dependency]
+	}
+}
+
 async function installDependencies(project_root, realm, dependencies) {
 	const id = Math.random().toString(32).slice(2)
 
@@ -71,7 +116,8 @@ async function installDependencies(project_root, realm, dependencies) {
 	let i = 0
 
 	for (const dependency in dependencies) {
-		const {version} = dependencies[dependency]
+		let version = "unknown"
+		let source = dependency
 
 		let import_code = defaultImportCode(dependency)
 
@@ -84,7 +130,18 @@ async function installDependencies(project_root, realm, dependencies) {
 
 		await fs.mkdir(pkg_path)
 
-		installPackage(pkg_path, dependency, version)
+		// only install package if package isn't provided
+		// by another package in the dependencies
+		if (!("import_from" in dependencies[dependency])) {
+			version = dependencies[dependency].version
+
+			installPackage(pkg_path, dependency, version)
+		} else {
+			const tmp = await installLinkedPackage(pkg_path, dependency, dependencies[dependency])
+
+			version = tmp.version
+			source = dependencies[dependency].import_from
+		}
 
 		await fs.writeFile(
 			path.join(pkg_path, "index.mjs"), import_code
@@ -95,7 +152,8 @@ async function installDependencies(project_root, realm, dependencies) {
 		js_file += `dependencies.push({\n`
 		js_file += `    name: ${JSON.stringify(dependency)},\n`
 		js_file += `    module: dependency_${i},\n`,
-		js_file += `    version: ${JSON.stringify(version)}\n`
+		js_file += `    version: ${JSON.stringify(version)},\n`
+		js_file += `    source: ${JSON.stringify(source)}\n`
 		js_file += `})\n`
 
 		++i
